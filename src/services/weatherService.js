@@ -4,6 +4,10 @@ import axios from 'axios'
 const API_KEY = import.meta.env.VITE_WEATHER_API_KEY || 'YOUR_API_KEY'
 const BASE_URL = 'https://api.openweathermap.org/data/2.5'
 
+// Debug logging for API key
+console.log('API Key:', API_KEY)
+console.log('Environment variables:', import.meta.env)
+
 // Create axios instance with default config
 const apiClient = axios.create({
   baseURL: BASE_URL,

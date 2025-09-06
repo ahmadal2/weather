@@ -1,104 +1,104 @@
 <template>
   <div class="loading-page">
-    <div class="animation-container">
-      <!-- Sun Animation (0-20%) -->
-      <transition name="fade" mode="out-in">
-        <div v-if="progress < 20" key="sun" class="stage sun-stage">
-          <div class="sun">
-            <div class="sun-core"></div>
-            <div class="sun-rays"></div>
+    <div class="loading-container">
+      <div class="animation-stage">
+        <!-- Sun Animation -->
+        <transition name="fade" mode="out-in">
+          <div v-if="currentStage === 1" key="sun" class="sun-stage">
+            <div class="sun">
+              <div class="sun-core"></div>
+              <div class="sun-rays"></div>
+            </div>
           </div>
-        </div>
-        
-        <!-- Clouds Animation (20-40%) -->
-        <div v-else-if="progress < 40" key="clouds" class="stage clouds-stage">
-          <div class="cloud big"></div>
-          <div class="cloud medium"></div>
-          <div class="cloud small"></div>
-        </div>
-        
-        <!-- Wind Animation (40-60%) -->
-        <div v-else-if="progress < 60" key="wind" class="stage wind-stage">
-          <div class="wind-element">
-            <div class="wind-line line-1"></div>
-            <div class="wind-line line-2"></div>
-            <div class="wind-line line-3"></div>
+          
+          <!-- Clouds Animation -->
+          <div v-else-if="currentStage === 2" key="clouds" class="clouds-stage">
+            <div class="cloud cloud-1"></div>
+            <div class="cloud cloud-2"></div>
+            <div class="cloud cloud-3"></div>
+          </div>
+          
+          <!-- Wind Animation -->
+          <div v-else-if="currentStage === 3" key="wind" class="wind-stage">
+            <div class="wind-lines">
+              <div class="wind-line wind-line-1"></div>
+              <div class="wind-line wind-line-2"></div>
+              <div class="wind-line wind-line-3"></div>
+            </div>
             <div class="wind-swirl"></div>
           </div>
-        </div>
-        
-        <!-- Rain Animation (60-80%) -->
-        <div v-else-if="progress < 80" key="rain" class="stage rain-stage">
-          <div class="rain-cloud"></div>
-          <div class="raindrops">
-            <div class="raindrop drop-1"></div>
-            <div class="raindrop drop-2"></div>
-            <div class="raindrop drop-3"></div>
-            <div class="raindrop drop-4"></div>
-            <div class="raindrop drop-5"></div>
-            <div class="raindrop drop-6"></div>
+          
+          <!-- Rain Animation -->
+          <div v-else-if="currentStage === 4" key="rain" class="rain-stage">
+            <div class="rain-cloud"></div>
+            <div class="raindrops">
+              <div class="raindrop raindrop-1"></div>
+              <div class="raindrop raindrop-2"></div>
+              <div class="raindrop raindrop-3"></div>
+              <div class="raindrop raindrop-4"></div>
+              <div class="raindrop raindrop-5"></div>
+            </div>
           </div>
-        </div>
-        
-        <!-- Lightning Animation (80-100%) -->
-        <div v-else key="lightning" class="stage lightning-stage">
-          <div class="storm-cloud"></div>
-          <div class="lightning-bolt"></div>
-          <div class="lightning-flash"></div>
-        </div>
-      </transition>
-    </div>
-    
-    <div class="progress-container">
-      <div class="progress-bar">
-        <div class="progress-fill" :style="{ width: progress + '%' }"></div>
+          
+          <!-- Lightning Animation -->
+          <div v-else-if="currentStage === 5" key="lightning" class="lightning-stage">
+            <div class="storm-cloud"></div>
+            <div class="lightning-bolt"></div>
+            <div class="lightning-flash"></div>
+          </div>
+        </transition>
       </div>
-      <div class="loading-text">{{ currentText }}</div>
+      
+      <div class="progress-container">
+        <div class="progress-bar">
+          <div class="progress-fill" :style="{ width: progress + '%' }"></div>
+        </div>
+        <div class="loading-text">{{ currentText }}</div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 
+const currentStage = ref(1)
 const progress = ref(0)
-const currentText = ref(t('loadingWeatherData'))
+const currentText = ref(t('warmingUpSun'))
 
-// Stage texts based on progress
-const currentTextComputed = computed(() => {
-  if (progress.value < 20) {
-    return t('warmingUpSun')
-  } else if (progress.value < 40) {
-    return t('gatheringClouds')
-  } else if (progress.value < 60) {
-    return t('collectingWind')
-  } else if (progress.value < 80) {
-    return t('collectingRaindrops')
+// Stage texts
+const stageTexts = {
+  1: 'warmingUpSun',
+  2: 'gatheringClouds',
+  3: 'collectingWind',
+  4: 'collectingRaindrops',
+  5: 'chargingLightning'
+}
+
+// Update progress and text
+const updateStage = () => {
+  if (currentStage.value < 5) {
+    currentStage.value++
+    progress.value = currentStage.value * 20
+    currentText.value = t(stageTexts[currentStage.value])
   } else {
-    return t('chargingLightning')
-  }
-})
-
-// Update progress
-const updateProgress = () => {
-  if (progress.value < 100) {
-    progress.value += 1
-    currentText.value = currentTextComputed.value
+    // Reset to beginning if needed
+    currentStage.value = 1
+    progress.value = 20
+    currentText.value = t(stageTexts[1])
   }
 }
 
-// Set up interval for continuous progress
+// Set up interval for stage transitions
 onMounted(() => {
-  // Set interval for progress updates (40ms per increment for 4 seconds total)
-  const interval = setInterval(() => {
-    updateProgress()
-    if (progress.value >= 100) {
-      clearInterval(interval)
-    }
-  }, 40)
+  // Initialize progress
+  progress.value = 20
+  
+  // Set interval for stage transitions (2 seconds per stage)
+  setInterval(updateStage, 2000)
 })
 </script>
 
@@ -111,39 +111,40 @@ onMounted(() => {
   height: 100%;
   background: radial-gradient(ellipse at center, #1e293b 0%, #0f172a 100%);
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
   z-index: 9999;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   gap: 40px;
+  width: 100%;
+  max-width: 500px;
   padding: 20px;
 }
 
-.animation-container {
+.animation-stage {
   width: 300px;
   height: 300px;
   display: flex;
   justify-content: center;
   align-items: center;
   position: relative;
-}
-
-.stage {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: absolute;
-  top: 0;
-  left: 0;
+  background: rgba(30, 41, 59, 0.3);
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 /* Fade transition */
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.5s ease;
+  transition: opacity 0.8s ease;
 }
 
 .fade-enter-from,
@@ -151,7 +152,7 @@ onMounted(() => {
   opacity: 0;
 }
 
-/* Sun Stage - 0-20% */
+/* Sun Stage */
 .sun-stage {
   display: flex;
   justify-content: center;
@@ -173,7 +174,7 @@ onMounted(() => {
   background: radial-gradient(circle, #ffeb3b 0%, #ff9800 100%);
   border-radius: 50%;
   box-shadow: 0 0 40px #ffeb3b, 0 0 80px #ff9800;
-  z-index: 3;
+  z-index: 2;
   animation: pulse 2s infinite ease-in-out;
 }
 
@@ -184,7 +185,7 @@ onMounted(() => {
   background: radial-gradient(circle, rgba(255, 235, 59, 0.6) 0%, transparent 70%);
   border-radius: 50%;
   animation: rotate 20s linear infinite;
-  z-index: 2;
+  z-index: 1;
 }
 
 @keyframes pulse {
@@ -207,11 +208,13 @@ onMounted(() => {
   }
 }
 
-/* Clouds Stage - 20-40% */
+/* Clouds Stage */
 .clouds-stage {
   display: flex;
   justify-content: center;
   align-items: center;
+  width: 100%;
+  height: 100%;
 }
 
 .cloud {
@@ -221,26 +224,25 @@ onMounted(() => {
   filter: blur(2px);
 }
 
-.big {
-  width: 100px;
-  height: 40px;
-  top: 45%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+.cloud-1 {
+  width: 70px;
+  height: 30px;
+  top: 40%;
+  left: 30%;
   animation: float 4s ease-in-out infinite;
 }
 
-.medium {
-  width: 70px;
-  height: 30px;
-  top: 35%;
-  left: 30%;
+.cloud-2 {
+  width: 100px;
+  height: 40px;
+  top: 50%;
+  left: 50%;
   animation: float 5s ease-in-out infinite 0.5s;
 }
 
-.small {
-  width: 50px;
-  height: 20px;
+.cloud-3 {
+  width: 80px;
+  height: 35px;
   top: 60%;
   left: 70%;
   animation: float 6s ease-in-out infinite 1s;
@@ -255,51 +257,51 @@ onMounted(() => {
   }
 }
 
-/* Wind Stage - 40-60% */
+/* Wind Stage */
 .wind-stage {
   display: flex;
   justify-content: center;
   align-items: center;
+  width: 100%;
+  height: 100%;
 }
 
-.wind-element {
-  position: relative;
+.wind-lines {
+  position: absolute;
   width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: space-around;
-  align-items: center;
+  padding: 0 20px;
 }
 
 .wind-line {
-  width: 150px;
-  height: 3px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent);
   border-radius: 2px;
-  animation: windFlow 2s linear infinite;
 }
 
-.line-1 {
-  animation-delay: 0s;
+.wind-line-1 {
+  animation: windFlow 3s linear infinite 0s;
 }
 
-.line-2 {
-  animation-delay: 0.3s;
+.wind-line-2 {
+  animation: windFlow 3s linear infinite 0.5s;
 }
 
-.line-3 {
-  animation-delay: 0.6s;
+.wind-line-3 {
+  animation: windFlow 3s linear infinite 1s;
 }
 
 .wind-swirl {
   width: 60px;
   height: 60px;
-  border: 3px solid rgba(255, 255, 255, 0.7);
+  border: 3px solid rgba(255, 255, 255, 0.5);
   border-radius: 50%;
   border-top-color: transparent;
   border-left-color: transparent;
-  animation: swirl 1.5s linear infinite;
+  animation: swirl 2s linear infinite;
 }
 
 @keyframes windFlow {
@@ -328,31 +330,32 @@ onMounted(() => {
   }
 }
 
-/* Rain Stage - 60-80% */
+/* Rain Stage */
 .rain-stage {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  width: 100%;
+  height: 100%;
 }
 
 .rain-cloud {
   width: 120px;
   height: 50px;
-  background: rgba(150, 150, 150, 0.9);
+  background: rgba(100, 100, 100, 0.8);
   border-radius: 50%;
   position: relative;
-  top: 20px;
+  top: 30px;
   filter: blur(2px);
 }
 
 .raindrops {
   position: relative;
-  top: 0;
+  top: -20px;
   display: flex;
   justify-content: space-around;
-  width: 100px;
-  margin-top: 30px;
+  width: 120px;
 }
 
 .raindrop {
@@ -361,37 +364,26 @@ onMounted(() => {
   background: linear-gradient(to bottom, #64b5f6, #1976d2);
   border-radius: 0 0 50% 50%;
   animation: fall 1.5s linear infinite;
-  position: absolute;
 }
 
-.drop-1 {
-  left: 10px;
+.raindrop-1 {
   animation-delay: 0s;
 }
 
-.drop-2 {
-  left: 25px;
+.raindrop-2 {
   animation-delay: 0.2s;
 }
 
-.drop-3 {
-  left: 40px;
+.raindrop-3 {
   animation-delay: 0.4s;
 }
 
-.drop-4 {
-  left: 55px;
+.raindrop-4 {
   animation-delay: 0.6s;
 }
 
-.drop-5 {
-  left: 70px;
+.raindrop-5 {
   animation-delay: 0.8s;
-}
-
-.drop-6 {
-  left: 85px;
-  animation-delay: 1s;
 }
 
 @keyframes fall {
@@ -405,17 +397,19 @@ onMounted(() => {
   }
 }
 
-/* Lightning Stage - 80-100% */
+/* Lightning Stage */
 .lightning-stage {
   display: flex;
   justify-content: center;
   align-items: center;
+  width: 100%;
+  height: 100%;
 }
 
 .storm-cloud {
   width: 150px;
   height: 70px;
-  background: rgba(50, 50, 70, 0.9);
+  background: rgba(30, 30, 40, 0.9);
   border-radius: 50%;
   filter: blur(3px);
 }
@@ -428,7 +422,6 @@ onMounted(() => {
   clip-path: polygon(50% 0%, 0% 100%, 30% 60%, 100% 100%, 70% 60%);
   opacity: 0;
   animation: lightning 0.5s linear infinite;
-  z-index: 2;
 }
 
 .lightning-flash {
@@ -438,7 +431,6 @@ onMounted(() => {
   background: rgba(255, 255, 255, 0.8);
   opacity: 0;
   animation: flash 0.3s ease-out;
-  z-index: 1;
 }
 
 @keyframes lightning {
@@ -465,7 +457,6 @@ onMounted(() => {
 /* Progress Bar */
 .progress-container {
   width: 100%;
-  max-width: 500px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -486,7 +477,7 @@ onMounted(() => {
   height: 100%;
   background: linear-gradient(90deg, #3b82f6, #60a5fa, #38bdf8);
   border-radius: 10px;
-  transition: width 0.1s ease;
+  transition: width 0.5s ease;
   box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
 }
 
@@ -500,7 +491,7 @@ onMounted(() => {
 
 /* Responsive design */
 @media (max-width: 768px) {
-  .animation-container {
+  .animation-stage {
     width: 250px;
     height: 250px;
   }
