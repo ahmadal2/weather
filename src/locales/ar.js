@@ -15,6 +15,7 @@ export default {
   description: 'الوصف',
   favorites: 'المفضلة',
   settings: 'الإعدادات',
+  theme: 'المظهر',
   defaultLocation: 'الموقع الافتراضي',
   temperatureUnit: 'وحدة درجة الحرارة',
   celsius: 'مئوية (°م)',

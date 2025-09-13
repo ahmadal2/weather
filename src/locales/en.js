@@ -15,6 +15,7 @@ export default {
   description: 'Description',
   favorites: 'Favorites',
   settings: 'Settings',
+  theme: 'Theme',
   defaultLocation: 'Default Location',
   temperatureUnit: 'Temperature Unit',
   celsius: 'Celsius (°C)',

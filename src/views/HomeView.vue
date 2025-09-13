@@ -3,52 +3,59 @@
     <!-- Loading Page -->
     <ModernLoadingPage v-if="showLoadingPage" />
     
-    <header class="header">
+    <header class="header glass-card">
       <div class="header-top">
         <h1 class="title">{{ $t('weatherDashboard') }}</h1>
-        <div class="language-switcher">
-          <select v-model="selectedLanguage" @change="changeLanguage" class="language-select">
+        <div class="header-controls">
+          <select v-model="selectedLanguage" @change="changeLanguage" class="modern-select language-select">
             <option value="en">{{ $t('language', {}, { locale: 'en' }) }}</option>
             <option value="ar">{{ $t('language', {}, { locale: 'ar' }) }}</option>
             <option value="de">{{ $t('language', {}, { locale: 'de' }) }}</option>
           </select>
+          <button class="modern-button icon-only" @click="toggleSettings">
+            ⚙️
+          </button>
         </div>
       </div>
       <div class="search-container">
-        <input 
-          type="text" 
-          v-model="searchLocation" 
-          :placeholder="$t('searchForCity')" 
-          @keyup.enter="searchWeather"
-          class="search-input"
-        />
-        <button @click="searchWeather" class="search-button">{{ $t('search') }}</button>
-        <button 
-          v-if="weatherStore.currentWeather && !isFavoriteLocation" 
-          @click="addToFavorites" 
-          class="favorite-button"
-          :title="$t('addToFavorites')"
-        >
-          ♡
-        </button>
-        <button 
-          v-else-if="isFavoriteLocation" 
-          @click="removeFromFavorites" 
-          class="favorite-button active"
-          :title="$t('removeFromFavorites')"
-        >
-          ♥
-        </button>
+        <div class="search-wrapper">
+          <input 
+            type="text" 
+            v-model="searchLocation" 
+            :placeholder="$t('searchForCity')" 
+            @keyup.enter="searchWeather"
+            class="modern-input search-input"
+          />
+          <button @click="searchWeather" class="modern-button search-button">{{ $t('search') }}</button>
+        </div>
+        <div class="favorite-controls">
+          <button 
+            v-if="weatherStore.currentWeather && !isFavoriteLocation" 
+            @click="addToFavorites" 
+            class="modern-button secondary favorite-button"
+            :title="$t('addToFavorites')"
+          >
+            ♡
+          </button>
+          <button 
+            v-else-if="isFavoriteLocation" 
+            @click="removeFromFavorites" 
+            class="modern-button favorite-button active"
+            :title="$t('removeFromFavorites')"
+          >
+            ♥
+          </button>
+        </div>
       </div>
     </header>
 
     <main class="main-content">
-      <div v-if="weatherStore.isLoading && !showLoadingPage" class="loading">
+      <div v-if="weatherStore.isLoading && !showLoadingPage" class="loading glass-card">
         <div class="spinner"></div>
         <p>{{ $t('loading') }}</p>
       </div>
       
-      <div v-else-if="weatherStore.error" class="error">
+      <div v-else-if="weatherStore.error" class="error glass-card">
         <div class="error-icon">⚠️</div>
         <p>{{ weatherStore.error }}</p>
         <div v-if="apiKeyError" class="api-key-error">
@@ -64,27 +71,20 @@
       </div>
       
       <div v-else-if="weatherStore.currentWeather" class="weather-container">
-        <CurrentWeather :weather="weatherStore.currentWeather" />
+        <CurrentWeather :weather="weatherStore.currentWeather" class="fade-in" />
         <DailyForecast 
           v-if="forecastData.length > 0" 
           :forecast-data="forecastData"
+          class="slide-in"
         />
         
-        <div class="sidebar">
-          <ForecastChart 
-            v-if="forecastData.length > 0" 
-            :forecast-data="forecastData"
-          />
-          <FavoriteLocations @selectFavorite="selectFavoriteLocation" />
-          <SettingsPanel />
-        </div>
-        
         <div class="alerts-container" v-if="weatherStore.alerts.length > 0">
-          <h3>{{ $t('weatherAlerts') }}</h3>
+          <h3 class="section-title">{{ $t('weatherAlerts') }}</h3>
           <WeatherAlert 
             v-for="alert in weatherStore.alerts" 
             :key="alert.id" 
             :alert="alert"
+            class="scale-in"
           />
         </div>
         
@@ -94,10 +94,11 @@
           :lat="weatherStore.currentWeather.coord.lat"
           :lon="weatherStore.currentWeather.coord.lon"
           :zoom="10"
+          class="slide-in"
         />
       </div>
       
-      <div v-else class="welcome-message">
+      <div v-else class="welcome-message glass-card">
         <div class="welcome-icon">🌤️</div>
         <h2>{{ $t('welcomeMessage') }}</h2>
         <p>{{ $t('searchToGetStarted') }}</p>
@@ -107,6 +108,14 @@
         </div>
       </div>
     </main>
+    
+    <!-- Settings Panel Overlay -->
+    <div v-if="showSettings" class="settings-overlay" @click="toggleSettings">
+      <div class="settings-content" @click.stop>
+        <SettingsPanel />
+        <button class="close-settings modern-button icon-only" @click="toggleSettings">✕</button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -131,6 +140,12 @@ const forecastData = ref([])
 const weatherStore = useWeatherStore()
 const showLoadingPage = ref(true)
 const selectedLanguage = ref('en')
+const showSettings = ref(false)
+
+// Toggle settings panel
+const toggleSettings = () => {
+  showSettings.value = !showSettings.value
+}
 
 // Load saved language preference
 onMounted(() => {
@@ -274,17 +289,43 @@ onMounted(() => {
 <style scoped>
 .weather-dashboard {
   min-height: 100vh;
-  background: linear-gradient(135deg, #0f172a, #1e293b);
-  padding: 20px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: var(--background-color);
+  padding: 25px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   position: relative;
   z-index: 1;
 }
 
 .header {
   text-align: center;
-  margin-bottom: 30px;
-  padding-top: 20px;
+  margin-bottom: 35px;
+  padding: 30px;
+  background: var(--glassmorphism-bg);
+  border-radius: 24px;
+  box-shadow: var(--glassmorphism-shadow);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glassmorphism-border);
+  position: relative;
+  overflow: hidden;
+}
+
+.header::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+  z-index: -1;
+  border-radius: 26px;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.header:hover::before {
+  opacity: 0.1;
 }
 
 .header-top {
@@ -292,100 +333,70 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   max-width: 1200px;
-  margin: 0 auto 20px;
-  padding: 0 20px;
+  margin: 0 auto 25px;
+  padding: 0 25px;
 }
 
 .title {
-  color: #f8fafc;
-  font-size: 2.5rem;
+  color: var(--text-color);
+  font-size: 2.8rem;
   margin: 0;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-  background: linear-gradient(90deg, #60a5fa, #38bdf8);
+  text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  font-weight: 800;
+  letter-spacing: -1px;
 }
 
-.language-switcher {
-  position: relative;
+.header-controls {
   display: flex;
+  gap: 18px;
   align-items: center;
 }
 
 .language-select {
-  padding: 8px 35px 8px 15px;
-  border: none;
-  border-radius: 20px;
-  background: rgba(30, 41, 59, 0.8);
-  color: #e2e8f0;
-  font-size: 0.9rem;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  cursor: pointer;
-  border: 1px solid #334155;
-  appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e2e8f0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  background-size: 15px;
-  width: 120px;
-}
-
-.language-select:focus {
-  outline: none;
-  border-color: #60a5fa;
-  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.3);
+  width: 160px;
 }
 
 .search-container {
   display: flex;
   justify-content: center;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 20px;
+  margin-bottom: 25px;
   flex-wrap: wrap;
+  max-width: 1200px;
+  margin: 0 auto;
+  align-items: center;
+}
+
+.search-wrapper {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  flex: 1;
+  max-width: 600px;
 }
 
 .search-input {
-  padding: 12px 20px;
-  border: none;
-  border-radius: 30px;
-  width: 300px;
-  font-size: 1rem;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  background: rgba(30, 41, 59, 0.8);
-  color: #e2e8f0;
-  border: 1px solid #334155;
+  width: 100%;
+  flex: 1;
 }
 
-.search-input::placeholder {
-  color: #94a3b8;
-}
-
-.search-button, .favorite-button {
-  padding: 12px 25px;
-  background: linear-gradient(135deg, #3b82f6, #60a5fa);
-  color: white;
-  border: none;
-  border-radius: 30px;
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: bold;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  transition: all 0.3s ease;
+.favorite-controls {
+  display: flex;
+  gap: 15px;
 }
 
 .favorite-button {
-  padding: 12px 20px;
-  background: linear-gradient(135deg, #ec4899, #f472b6);
+  font-size: 1.4rem;
+  padding: 12px 18px;
 }
 
 .favorite-button.active {
-  background: linear-gradient(135deg, #f43f5e, #fb7185);
-}
-
-.search-button:hover, .favorite-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+  background: linear-gradient(135deg, var(--error-color), #ff4d4d);
+  box-shadow: 0 6px 20px rgba(248, 113, 113, 0.3);
 }
 
 .main-content {
@@ -395,28 +406,33 @@ onMounted(() => {
 
 .loading, .error, .welcome-message {
   text-align: center;
-  padding: 40px;
-  background: rgba(30, 41, 59, 0.8);
-  border-radius: 15px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 60px;
+  background: var(--glassmorphism-bg);
+  border-radius: 24px;
+  box-shadow: var(--glassmorphism-shadow);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glassmorphism-border);
+  margin-bottom: 35px;
+  position: relative;
+  overflow: hidden;
 }
 
 .loading {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: 25px;
 }
 
 .spinner {
-  width: 50px;
-  height: 50px;
-  border: 5px solid rgba(59, 130, 246, 0.3);
-  border-top: 5px solid #3b82f6;
+  width: 60px;
+  height: 60px;
+  border: 6px solid rgba(59, 130, 246, 0.3);
+  border-top: 6px solid var(--primary-color);
   border-radius: 50%;
   animation: spin 1s linear infinite;
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
 }
 
 @keyframes spin {
@@ -425,52 +441,55 @@ onMounted(() => {
 }
 
 .welcome-icon, .error-icon {
-  font-size: 3rem;
-  margin-bottom: 20px;
+  font-size: 4.5rem;
+  margin-bottom: 25px;
+  animation: pulseGlow 2s infinite alternate;
 }
 
 .loading p, .error p, .welcome-message p {
-  font-size: 1.2rem;
-  color: #e2e8f0;
+  font-size: 1.3rem;
+  color: var(--text-color);
 }
 
 .error p {
-  color: #f87171;
+  color: var(--error-color);
 }
 
 .api-key-error, .api-key-info {
-  margin-top: 20px;
-  padding: 15px;
+  margin-top: 25px;
+  padding: 25px;
   background: rgba(251, 191, 36, 0.1);
-  border-radius: 8px;
+  border-radius: 16px;
   text-align: left;
   border: 1px solid rgba(251, 191, 36, 0.3);
 }
 
 .api-key-error p, .api-key-info p {
-  font-size: 1rem;
-  margin-bottom: 10px;
+  font-size: 1.1rem;
+  margin-bottom: 12px;
+  color: var(--text-color);
 }
 
 .free-tier-note, .free-tier-info {
   font-weight: bold;
-  color: #34d399;
-  margin: 10px 0;
+  color: var(--success-color);
+  margin: 12px 0;
 }
 
 .api-key-error ol {
   text-align: left;
-  margin: 10px 0 10px 20px;
-  color: #e2e8f0;
+  margin: 12px 0 12px 25px;
+  color: var(--text-color);
 }
 
 .api-key-error li {
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .api-key-error a {
-  color: #60a5fa;
+  color: var(--primary-color);
   text-decoration: none;
+  font-weight: 600;
 }
 
 .api-key-error a:hover {
@@ -478,46 +497,140 @@ onMounted(() => {
 }
 
 .api-key-error code, .api-key-info code {
-  background: rgba(30, 41, 59, 0.8);
-  padding: 2px 5px;
-  border-radius: 3px;
+  background: var(--glassmorphism-bg);
+  padding: 5px 10px;
+  border-radius: 8px;
   font-family: monospace;
-  border: 1px solid #334155;
+  border: 1px solid var(--glassmorphism-border);
 }
 
 .weather-container {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 25px;
-}
-
-.sidebar {
   display: flex;
   flex-direction: column;
-  gap: 25px;
+  gap: 35px;
 }
 
-.forecast-container, .alerts-container {
-  background: rgba(30, 41, 59, 0.8);
-  border-radius: 15px;
+.alerts-container {
+  background: var(--glassmorphism-bg);
+  border-radius: 24px;
   padding: 30px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: var(--glassmorphism-shadow);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glassmorphism-border);
+  margin-top: 25px;
+  position: relative;
+  overflow: hidden;
 }
 
-.forecast-container h3, .alerts-container h3 {
+.alerts-container::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, var(--warning-color), #fcd34d);
+  z-index: -1;
+  border-radius: 26px;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.alerts-container:hover::before {
+  opacity: 0.05;
+}
+
+.alerts-container h3 {
   margin-top: 0;
-  color: #e2e8f0;
-  font-size: 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding-bottom: 10px;
+  color: var(--text-color);
+  font-size: 1.7rem;
+  border-bottom: 1px solid var(--glassmorphism-border);
+  padding-bottom: 18px;
+  font-weight: 800;
+}
+
+/* Settings Overlay */
+.settings-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: fadeIn 0.3s ease forwards;
+}
+
+.settings-content {
+  position: relative;
+  max-width: 550px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--glassmorphism-bg);
+  border-radius: 24px;
+  box-shadow: var(--glassmorphism-shadow);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glassmorphism-border);
+  padding: 30px;
+  position: relative;
+  overflow: hidden;
+}
+
+.settings-content::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+  z-index: -1;
+  border-radius: 26px;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.settings-content:hover::before {
+  opacity: 0.1;
+}
+
+.close-settings {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: var(--error-color);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 45px;
+  height: 45px;
+  cursor: pointer;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  box-shadow: 0 4px 15px rgba(248, 113, 113, 0.4);
+  transition: all 0.3s ease;
+}
+
+.close-settings:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(248, 113, 113, 0.6);
 }
 
 /* Responsive design */
 @media (min-width: 768px) {
   .weather-container {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
   }
   
   .search-input {
@@ -525,7 +638,7 @@ onMounted(() => {
   }
   
   .header-top {
-    margin-bottom: 30px;
+    margin-bottom: 35px;
   }
 }
 
@@ -540,14 +653,156 @@ onMounted(() => {
   }
 }
 
-@media (max-width: 767px) {
+@media (max-width: 768px) {
+  .weather-dashboard {
+    padding: 20px;
+  }
+  
+  .header {
+    padding: 25px;
+    margin-bottom: 25px;
+  }
+  
   .header-top {
     flex-direction: column;
-    gap: 15px;
+    gap: 20px;
+    margin-bottom: 20px;
+    padding: 0 15px;
+  }
+  
+  .header-controls {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .title {
+    font-size: 2.3rem;
+    text-align: center;
+  }
+  
+  .language-select {
+    width: 100%;
+    max-width: 160px;
+  }
+  
+  .search-container {
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding: 0 15px;
+  }
+  
+  .search-wrapper {
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .search-input {
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .favorite-controls {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .main-content {
+    padding: 0 10px;
+  }
+  
+  .loading, .error, .welcome-message {
+    padding: 40px;
+    margin: 15px;
+  }
+  
+  .welcome-icon, .error-icon {
+    font-size: 3.5rem;
+    margin-bottom: 20px;
+  }
+  
+  .loading p, .error p, .welcome-message p {
+    font-size: 1.2rem;
+  }
+  
+  .weather-container {
+    grid-template-columns: 1fr;
+    gap: 25px;
+  }
+  
+  .sidebar {
+    grid-column: 1;
+    grid-row: auto;
+    gap: 25px;
+  }
+  
+  .alerts-container {
+    padding: 25px;
+  }
+  
+  .alerts-container h3 {
+    font-size: 1.5rem;
+  }
+  
+  .settings-content {
+    width: 95%;
+    max-height: 85vh;
+    padding: 25px;
+  }
+  
+  .close-settings {
+    width: 40px;
+    height: 40px;
+    font-size: 1.1rem;
+    top: 15px;
+    right: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .weather-dashboard {
+    padding: 15px;
+  }
+  
+  .header {
+    padding: 20px;
   }
   
   .title {
     font-size: 2rem;
+  }
+  
+  .search-input {
+    padding: 14px 18px;
+    font-size: 1rem;
+  }
+  
+  .modern-button {
+    padding: 12px 22px;
+    font-size: 1rem;
+  }
+  
+  .modern-button.icon-only {
+    padding: 12px;
+    width: 48px;
+    height: 48px;
+  }
+  
+  .loading, .error, .welcome-message {
+    padding: 30px;
+  }
+  
+  .welcome-icon, .error-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+  }
+  
+  .settings-content {
+    padding: 20px;
+  }
+  
+  .search-button {
+    padding: 12px 20px;
   }
 }
 </style>

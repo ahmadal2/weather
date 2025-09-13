@@ -1,14 +1,13 @@
 <template>
-  <div class="weather-map-container">
-    <h3 class="map-title">{{ $t('weatherMaps') }}</h3>
+  <div class="weather-map-container glass-card">
+    <h3 class="section-title">{{ $t('weatherMaps') }}</h3>
     <div class="map-controls">
       <div class="map-type-selector">
         <button 
           v-for="type in mapTypes" 
           :key="type.value"
-          :class="{ active: selectedMapType === type.value }"
+          :class="{ active: selectedMapType === type.value, 'modern-button': true, 'secondary': selectedMapType !== type.value }"
           @click="changeMapType(type.value)"
-          class="map-type-button"
         >
           {{ type.label }}
         </button>
@@ -19,7 +18,7 @@
           id="map-layer"
           v-model="selectedLayer" 
           @change="updateMap"
-          class="layer-select"
+          class="modern-select"
         >
           <option value="temperature">{{ $t('temperature') }}</option>
           <option value="precipitation">{{ $t('precipitation') }}</option>
@@ -45,6 +44,16 @@
       <div class="legend-item" v-for="item in legendItems" :key="item.label">
         <div class="legend-color" :style="{ backgroundColor: item.color }"></div>
         <span class="legend-label">{{ item.label }}</span>
+      </div>
+    </div>
+    <div class="map-info">
+      <div class="info-item">
+        <span class="info-label">{{ $t('coordinates') }}:</span>
+        <span class="info-value">{{ props.lat.toFixed(4) }}, {{ props.lon.toFixed(4) }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">{{ $t('zoomLevel') }}:</span>
+        <span class="info-value">{{ props.zoom }}</span>
       </div>
     </div>
   </div>
@@ -180,98 +189,115 @@ onMounted(() => {
 
 <style scoped>
 .weather-map-container {
-  background: rgba(30, 41, 59, 0.8);
-  border-radius: 15px;
-  padding: 20px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  margin-top: 20px;
+  background: var(--glassmorphism-bg);
+  border-radius: 24px;
+  padding: 30px;
+  box-shadow: var(--glassmorphism-shadow);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glassmorphism-border);
+  margin-top: 30px;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
 }
 
-.map-title {
-  margin: 0 0 15px 0;
-  color: #e2e8f0;
-  font-size: 1.3rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding-bottom: 10px;
+.weather-map-container::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+  z-index: -1;
+  border-radius: 26px;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.weather-map-container:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+}
+
+.weather-map-container:hover::before {
+  opacity: 0.1;
+}
+
+.section-title {
+  margin: 0 0 25px 0;
+  color: var(--text-color);
+  font-size: 1.8rem;
+  font-weight: 800;
+  position: relative;
+  padding-bottom: 15px;
+  letter-spacing: -0.5px;
+}
+
+.section-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 60px;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+  border-radius: 4px;
+  box-shadow: var(--neon-glow);
 }
 
 .map-controls {
   display: flex;
   flex-wrap: wrap;
-  gap: 15px;
-  margin-bottom: 15px;
+  gap: 20px;
+  margin-bottom: 25px;
   align-items: center;
   justify-content: space-between;
 }
 
 .map-type-selector {
   display: flex;
-  gap: 5px;
+  gap: 15px;
   flex-wrap: wrap;
 }
 
-.map-type-button {
-  padding: 8px 15px;
-  background: rgba(15, 23, 42, 0.5);
-  color: #94a3b8;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: all 0.3s ease;
-}
-
-.map-type-button:hover {
-  background: rgba(15, 23, 42, 0.7);
-  color: #e2e8f0;
-}
-
-.map-type-button.active {
-  background: linear-gradient(135deg, #3b82f6, #60a5fa);
-  color: white;
-  border-color: #3b82f6;
+.map-type-selector .modern-button {
+  padding: 12px 20px;
+  font-size: 0.95rem;
 }
 
 .map-layer-selector {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 15px;
 }
 
 .map-layer-selector label {
-  color: #e2e8f0;
-  font-weight: 500;
+  color: var(--text-color);
+  font-weight: 600;
+  font-size: 1.05rem;
+  white-space: nowrap;
 }
 
-.layer-select {
-  padding: 8px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 5px;
-  background: rgba(15, 23, 42, 0.5);
-  color: #e2e8f0;
-  font-size: 0.9rem;
-}
-
-.layer-select:focus {
-  outline: none;
-  border-color: #60a5fa;
-  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.3);
+.map-layer-selector .modern-select {
+  min-width: 180px;
 }
 
 .map-wrapper {
   position: relative;
+  width: 100%;
   height: 400px;
-  border-radius: 10px;
+  border-radius: 20px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--glassmorphism-border);
 }
 
 .weather-map {
   width: 100%;
   height: 100%;
-  background: #0f172a;
+  border: none;
 }
 
 .map-loading {
@@ -285,51 +311,84 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 15px;
+  gap: 20px;
   z-index: 10;
+  border-radius: 20px;
 }
 
 .map-loading .spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid rgba(59, 130, 246, 0.3);
-  border-top: 4px solid #3b82f6;
+  width: 50px;
+  height: 50px;
+  border: 5px solid rgba(59, 130, 246, 0.3);
+  border-top: 5px solid var(--primary-color);
   border-radius: 50%;
   animation: spin 1s linear infinite;
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
 }
 
 .map-loading p {
-  color: #e2e8f0;
-  font-size: 1rem;
-  margin: 0;
+  color: var(--text-color);
+  font-size: 1.2rem;
+  font-weight: 500;
 }
 
 .map-legend {
   display: flex;
   flex-wrap: wrap;
   gap: 15px;
-  margin-top: 15px;
-  padding: 10px;
-  background: rgba(15, 23, 42, 0.5);
-  border-radius: 8px;
+  margin-top: 25px;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.4);
+  border-radius: 18px;
+  border: 1px solid var(--glassmorphism-border);
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
 }
 
 .legend-color {
-  width: 20px;
-  height: 20px;
-  border-radius: 3px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  width: 25px;
+  height: 25px;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
 .legend-label {
-  color: #e2e8f0;
-  font-size: 0.85rem;
+  color: var(--text-color);
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.map-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 25px;
+  margin-top: 25px;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.4);
+  border-radius: 18px;
+  border: 1px solid var(--glassmorphism-border);
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.info-label {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.info-value {
+  color: var(--text-color);
+  font-size: 1.1rem;
+  font-weight: 600;
 }
 
 @keyframes spin {
@@ -339,21 +398,130 @@ onMounted(() => {
 
 /* Responsive design */
 @media (max-width: 768px) {
+  .weather-map-container {
+    padding: 25px;
+    margin-top: 25px;
+  }
+  
+  .section-title {
+    font-size: 1.6rem;
+    margin-bottom: 20px;
+  }
+  
   .map-controls {
     flex-direction: column;
     align-items: flex-start;
+    gap: 20px;
+  }
+  
+  .map-type-selector {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .map-layer-selector {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .map-layer-selector .modern-select {
+    min-width: 100%;
+  }
+  
+  .map-wrapper {
+    height: 350px;
+  }
+  
+  .map-legend {
+    gap: 12px;
+    padding: 15px;
+    margin-top: 20px;
+  }
+  
+  .legend-item {
+    gap: 6px;
+  }
+  
+  .legend-color {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .legend-label {
+    font-size: 0.85rem;
+  }
+  
+  .map-info {
+    gap: 20px;
+    padding: 15px;
+    margin-top: 20px;
+  }
+  
+  .info-label {
+    font-size: 0.85rem;
+  }
+  
+  .info-value {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .weather-map-container {
+    padding: 20px;
+  }
+  
+  .section-title {
+    font-size: 1.5rem;
+  }
+  
+  .map-type-selector .modern-button {
+    padding: 10px 16px;
+    font-size: 0.9rem;
+  }
+  
+  .map-layer-selector label {
+    font-size: 0.95rem;
   }
   
   .map-wrapper {
     height: 300px;
   }
   
-  .map-type-selector {
-    width: 100%;
+  .map-loading .spinner {
+    width: 40px;
+    height: 40px;
   }
   
-  .map-type-button {
-    flex: 1;
+  .map-loading p {
+    font-size: 1.1rem;
+  }
+  
+  .map-legend {
+    gap: 10px;
+    padding: 12px;
+  }
+  
+  .legend-color {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .legend-label {
+    font-size: 0.8rem;
+  }
+  
+  .map-info {
+    gap: 15px;
+    padding: 12px;
+  }
+  
+  .info-label {
+    font-size: 0.8rem;
+  }
+  
+  .info-value {
+    font-size: 0.95rem;
   }
 }
 </style>
